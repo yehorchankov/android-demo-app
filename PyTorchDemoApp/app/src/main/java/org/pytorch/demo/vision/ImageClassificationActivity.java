@@ -13,6 +13,7 @@ import org.pytorch.IValue;
 import org.pytorch.Module;
 import org.pytorch.Tensor;
 import org.pytorch.demo.Constants;
+import org.pytorch.demo.InfoViewFactory;
 import org.pytorch.demo.R;
 import org.pytorch.demo.Utils;
 import org.pytorch.demo.vision.view.ResultRowView;
@@ -35,6 +36,10 @@ public class ImageClassificationActivity extends AbstractCameraXActivity<ImageCl
 
   private static final int INPUT_TENSOR_WIDTH = 224;
   private static final int INPUT_TENSOR_HEIGHT = 224;
+  private static final int ULTRA_INPUT_TENSOR_HEIGHT = 240;
+  private static final int ULTRA_INPUT_TENSOR_WIDTH = 320;
+  private static final float[] ULTRANET_NORM_MEAN_RGB = new float[] {127f, 127f, 127f};
+  private static final float[] ULTRANET_NORM_STD_RGB = new float[] {1.0f / 128.0f, 1.0f / 128.0f, 1.0f / 128.0f};
   private static final int TOP_K = 3;
   private static final int MOVING_AVG_PERIOD = 10;
   private static final String FORMAT_MS = "%dms";
@@ -160,40 +165,73 @@ public class ImageClassificationActivity extends AbstractCameraXActivity<ImageCl
     }
 
     try {
-      if (mModule == null) {
-        final String moduleFileAbsoluteFilePath = new File(
-            Utils.assetFilePath(this, getModuleAssetName())).getAbsolutePath();
-        mModule = Module.load(moduleFileAbsoluteFilePath);
+        if (this.getInfoViewCode() == InfoViewFactory.INFO_VIEW_TYPE_FACE_DETECTION_ULTRANET) {
+          if (mModule == null) {
+            // Create model and input tensor
+            final String moduleFileAbsoluteFilePath = new File(
+                    Utils.assetFilePath(this, getModuleAssetName())).getAbsolutePath();
+            mModule = Module.load(moduleFileAbsoluteFilePath);
 
-        mInputTensorBuffer =
-            Tensor.allocateFloatBuffer(3 * INPUT_TENSOR_WIDTH * INPUT_TENSOR_HEIGHT);
-        mInputTensor = Tensor.fromBlob(mInputTensorBuffer, new long[]{1, 3, INPUT_TENSOR_HEIGHT, INPUT_TENSOR_WIDTH});
-      }
+            mInputTensorBuffer =
+                    Tensor.allocateFloatBuffer(3 * ULTRA_INPUT_TENSOR_WIDTH * ULTRA_INPUT_TENSOR_HEIGHT);
+            mInputTensor = Tensor.fromBlob(mInputTensorBuffer, new long[]{1, 3, ULTRA_INPUT_TENSOR_HEIGHT, ULTRA_INPUT_TENSOR_WIDTH});
+          }
 
-      final long startTime = SystemClock.elapsedRealtime();
-      TensorImageUtils.imageYUV420CenterCropToFloatBuffer(
-          image.getImage(), rotationDegrees,
-          INPUT_TENSOR_WIDTH, INPUT_TENSOR_HEIGHT,
-          TensorImageUtils.TORCHVISION_NORM_MEAN_RGB,
-          TensorImageUtils.TORCHVISION_NORM_STD_RGB,
-          mInputTensorBuffer, 0);
+            // Handle face detection
+            final long startTime = SystemClock.elapsedRealtime();
+            TensorImageUtils.imageYUV420CenterCropToFloatBuffer(
+                    image.getImage(), rotationDegrees,
+                    ULTRA_INPUT_TENSOR_WIDTH, ULTRA_INPUT_TENSOR_HEIGHT,
+                    ULTRANET_NORM_MEAN_RGB, ULTRANET_NORM_STD_RGB,
+                    mInputTensorBuffer, 0);
 
-      final long moduleForwardStartTime = SystemClock.elapsedRealtime();
-      final Tensor outputTensor = mModule.forward(IValue.from(mInputTensor)).toTensor();
-      final long moduleForwardDuration = SystemClock.elapsedRealtime() - moduleForwardStartTime;
+            final long moduleForwardStartTime = SystemClock.elapsedRealtime();
+            final IValue[] outputTensors = mModule.forward(IValue.from(mInputTensor)).toTuple();
+            final long moduleForwardDuration = SystemClock.elapsedRealtime() - moduleForwardStartTime;
 
-      final float[] scores = outputTensor.getDataAsFloatArray();
-      final int[] ixs = Utils.topK(scores, TOP_K);
+            final float[] scores = outputTensors[0].toTensor().getDataAsFloatArray();
+          final float[] boxes = outputTensors[1].toTensor().getDataAsFloatArray();
 
-      final String[] topKClassNames = new String[TOP_K];
-      final float[] topKScores = new float[TOP_K];
-      for (int i = 0; i < TOP_K; i++) {
-        final int ix = ixs[i];
-        topKClassNames[i] = Constants.IMAGENET_CLASSES[ix];
-        topKScores[i] = scores[ix];
-      }
-      final long analysisDuration = SystemClock.elapsedRealtime() - startTime;
-      return new AnalysisResult(topKClassNames, topKScores, moduleForwardDuration, analysisDuration);
+
+            return null;
+        } else {
+          if (mModule == null) {
+            // Create model and input tensor
+            final String moduleFileAbsoluteFilePath = new File(
+                    Utils.assetFilePath(this, getModuleAssetName())).getAbsolutePath();
+            mModule = Module.load(moduleFileAbsoluteFilePath);
+
+            mInputTensorBuffer =
+                    Tensor.allocateFloatBuffer(3 * INPUT_TENSOR_WIDTH * INPUT_TENSOR_HEIGHT);
+            mInputTensor = Tensor.fromBlob(mInputTensorBuffer, new long[]{1, 3, INPUT_TENSOR_HEIGHT, INPUT_TENSOR_WIDTH});
+          }
+
+            // Handle classification
+        final long startTime = SystemClock.elapsedRealtime();
+        TensorImageUtils.imageYUV420CenterCropToFloatBuffer(
+                image.getImage(), rotationDegrees,
+                INPUT_TENSOR_WIDTH, INPUT_TENSOR_HEIGHT,
+                TensorImageUtils.TORCHVISION_NORM_MEAN_RGB,
+                TensorImageUtils.TORCHVISION_NORM_STD_RGB,
+                mInputTensorBuffer, 0);
+
+        final long moduleForwardStartTime = SystemClock.elapsedRealtime();
+        final Tensor outputTensor = mModule.forward(IValue.from(mInputTensor)).toTensor();
+        final long moduleForwardDuration = SystemClock.elapsedRealtime() - moduleForwardStartTime;
+
+        final float[] scores = outputTensor.getDataAsFloatArray();
+        final int[] ixs = Utils.topK(scores, TOP_K);
+
+        final String[] topKClassNames = new String[TOP_K];
+        final float[] topKScores = new float[TOP_K];
+        for (int i = 0; i < TOP_K; i++) {
+            final int ix = ixs[i];
+            topKClassNames[i] = Constants.IMAGENET_CLASSES[ix];
+            topKScores[i] = scores[ix];
+        }
+        final long analysisDuration = SystemClock.elapsedRealtime() - startTime;
+        return new AnalysisResult(topKClassNames, topKScores, moduleForwardDuration, analysisDuration);
+    }
     } catch (Exception e) {
       Log.e(Constants.TAG, "Error during image analysis", e);
       mAnalyzeImageErrorState = true;
