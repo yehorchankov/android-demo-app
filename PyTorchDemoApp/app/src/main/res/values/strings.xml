@@ -25,7 +25,7 @@
     <string name="vision_card_qmobilenet_description">Inference in int8.\nInput is float32 tensor of 1x3x224x224 shape</string>
 
     <string name="vision_card_ultranet_title">Face Recognition\nUltraNet</string>
-    <string name="vision_card_ultranet_description">Default pretrained model.\nInput is float32 tensor of 1x3x224x224 shape</string>
+    <string name="vision_card_ultranet_description">Default pretrained model.\nInput is float32 tensor of 1x3x240x320 shape</string>
 
     <string name="vision_card_resnet_title">Image Classification\nResnet18</string>
     <string name="vision_card_resnet_description">Default TorchVision pretrained Resnet18 model. Input is float32 tensor of 1x3x224x224 shape</string>
