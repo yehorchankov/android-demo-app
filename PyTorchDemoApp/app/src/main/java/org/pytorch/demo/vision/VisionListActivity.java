@@ -27,6 +27,14 @@ public class VisionListActivity extends AbstractListActivity {
           InfoViewFactory.INFO_VIEW_TYPE_IMAGE_CLASSIFICATION_RESNET);
       startActivity(intent);
     });
+    findViewById(R.id.vision_card_resnet_click_area).setOnClickListener(v -> {
+      final Intent intent = new Intent(VisionListActivity.this, ImageClassificationActivity.class);
+      intent.putExtra(ImageClassificationActivity.INTENT_MODULE_ASSET_NAME,
+              "version-slim-320.pth");
+      intent.putExtra(ImageClassificationActivity.INTENT_INFO_VIEW_TYPE,
+              InfoViewFactory.INFO_VIEW_TYPE_FACE_DETECTION_ULTRANET);
+      startActivity(intent);
+    });
   }
 
   @Override
