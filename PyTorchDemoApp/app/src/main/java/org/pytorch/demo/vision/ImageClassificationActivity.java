@@ -187,22 +187,22 @@ public class ImageClassificationActivity extends AbstractCameraXActivity<ImageCl
                     FaceDetector = FaceDetectorNative.nativeInitFaceDetector(ULTRA_INPUT_TENSOR_WIDTH, ULTRA_INPUT_TENSOR_HEIGHT, 3);
                 }
 
-                final String testImagePath = new File(Utils.assetFilePath(this, "face.jpg")).getAbsolutePath();
-
-                Bitmap testImageBitmap = BitmapFactory.decodeFile(testImagePath);
+//                final String testImagePath = new File(Utils.assetFilePath(this, "faces.jpg")).getAbsolutePath();
+//
+//                Bitmap testImageBitmap = BitmapFactory.decodeFile(testImagePath);
 
 
                 // Handle face detection
                 final long startTime = SystemClock.elapsedRealtime();
-                TensorImageUtilsCopy.bitmapToFloatBuffer(testImageBitmap, 0, 0,
+//                TensorImageUtilsCopy.bitmapToFloatBuffer(testImageBitmap, 0, 0,
+//                        ULTRA_INPUT_TENSOR_WIDTH, ULTRA_INPUT_TENSOR_HEIGHT,
+//                        ULTRANET_NORM_MEAN_RGB, new float[]{128.0f, 128.0f, 128.0f},
+//                        mInputTensorBuffer, 0);
+                TensorImageUtilsCopy.imageYUV420CenterCropToFloatBuffer(
+                        image.getImage(), rotationDegrees,
                         ULTRA_INPUT_TENSOR_WIDTH, ULTRA_INPUT_TENSOR_HEIGHT,
-                        ULTRANET_NORM_MEAN_RGB, new float[]{128.0f, 128.0f, 128.0f},
+                        ULTRANET_NORM_MEAN_RGB, ULTRANET_NORM_STD_RGB,
                         mInputTensorBuffer, 0);
-//            TensorImageUtilsCopy.imageYUV420CenterCropToFloatBuffer(
-//                    image.getImage(), rotationDegrees,
-//                    ULTRA_INPUT_TENSOR_WIDTH, ULTRA_INPUT_TENSOR_HEIGHT,
-//                    ULTRANET_NORM_MEAN_RGB, ULTRANET_NORM_STD_RGB,
-//                    mInputTensorBuffer, 0);
 
                 final long moduleForwardStartTime = SystemClock.elapsedRealtime();
                 final IValue[] outputTensors = mModule.forward(IValue.from(mInputTensor)).toTuple();
@@ -211,9 +211,10 @@ public class ImageClassificationActivity extends AbstractCameraXActivity<ImageCl
                 final float[] scores = outputTensors[0].toTensor().getDataAsFloatArray();
                 final float[] boxes = outputTensors[1].toTensor().getDataAsFloatArray();
 
-
                 float[] result = FaceDetectorNative.nativeFaceDetect(FaceDetector, scores, boxes);
-                return null;
+
+                final long analysisDuration = SystemClock.elapsedRealtime() - startTime;
+                return new AnalysisResult(new String[] {"Wasted"}, new float[] {0.9f}, moduleForwardDuration, analysisDuration);
             } else {
                 if (mModule == null) {
                     // Create model and input tensor
