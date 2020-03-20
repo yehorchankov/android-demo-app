@@ -183,13 +183,26 @@ public class ImageClassificationActivity extends AbstractCameraXActivity<ImageCl
             mInputTensor = Tensor.fromBlob(mInputTensorBuffer, new long[]{1, 3, ULTRA_INPUT_TENSOR_HEIGHT, ULTRA_INPUT_TENSOR_WIDTH});
           }
 
-            // Handle face detection
-            final long startTime = SystemClock.elapsedRealtime();
-            TensorImageUtils.imageYUV420CenterCropToFloatBuffer(
-                    image.getImage(), rotationDegrees,
-                    ULTRA_INPUT_TENSOR_WIDTH, ULTRA_INPUT_TENSOR_HEIGHT,
-                    ULTRANET_NORM_MEAN_RGB, ULTRANET_NORM_STD_RGB,
-                    mInputTensorBuffer, 0);
+          if (FaceDetector == null) {
+            FaceDetector = FaceDetectorNative.nativeInitFaceDetector(ULTRA_INPUT_TENSOR_WIDTH, ULTRA_INPUT_TENSOR_HEIGHT, 3);
+          }
+
+          final String testImagePath = new File(Utils.assetFilePath(this, "face.jpg")).getAbsolutePath();
+
+          Bitmap testImageBitmap = BitmapFactory.decodeFile(testImagePath);
+
+
+          // Handle face detection
+          final long startTime = SystemClock.elapsedRealtime();
+          TensorImageUtilsCopy.bitmapToFloatBuffer(testImageBitmap, 0, 0,
+                  ULTRA_INPUT_TENSOR_WIDTH, ULTRA_INPUT_TENSOR_HEIGHT,
+                  ULTRANET_NORM_MEAN_RGB, new float[] {128.0f, 128.0f, 128.0f},
+                  mInputTensorBuffer, 0);
+//            TensorImageUtilsCopy.imageYUV420CenterCropToFloatBuffer(
+//                    image.getImage(), rotationDegrees,
+//                    ULTRA_INPUT_TENSOR_WIDTH, ULTRA_INPUT_TENSOR_HEIGHT,
+//                    ULTRANET_NORM_MEAN_RGB, ULTRANET_NORM_STD_RGB,
+//                    mInputTensorBuffer, 0);
 
             final long moduleForwardStartTime = SystemClock.elapsedRealtime();
             final IValue[] outputTensors = mModule.forward(IValue.from(mInputTensor)).toTuple();
