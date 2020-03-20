@@ -1,5 +1,8 @@
 package org.pytorch.demo.vision;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.Image;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.text.TextUtils;
@@ -13,8 +16,10 @@ import org.pytorch.IValue;
 import org.pytorch.Module;
 import org.pytorch.Tensor;
 import org.pytorch.demo.Constants;
+import org.pytorch.demo.FaceDetectorNative;
 import org.pytorch.demo.InfoViewFactory;
 import org.pytorch.demo.R;
+import org.pytorch.demo.TensorImageUtilsCopy;
 import org.pytorch.demo.Utils;
 import org.pytorch.demo.vision.view.ResultRowView;
 import org.pytorch.torchvision.TensorImageUtils;
@@ -70,6 +75,7 @@ public class ImageClassificationActivity extends AbstractCameraXActivity<ImageCl
   private TextView mMsText;
   private TextView mMsAvgText;
   private Module mModule;
+  private Long FaceDetector;
   private String mModuleAssetName;
   private FloatBuffer mInputTensorBuffer;
   private Tensor mInputTensor;
@@ -193,6 +199,7 @@ public class ImageClassificationActivity extends AbstractCameraXActivity<ImageCl
           final float[] boxes = outputTensors[1].toTensor().getDataAsFloatArray();
 
 
+          float[] result = FaceDetectorNative.nativeFaceDetect(FaceDetector, scores, boxes);
             return null;
         } else {
           if (mModule == null) {
@@ -254,6 +261,10 @@ public class ImageClassificationActivity extends AbstractCameraXActivity<ImageCl
     super.onDestroy();
     if (mModule != null) {
       mModule.destroy();
+    }
+    if (FaceDetector != null) {
+      FaceDetectorNative.nativeReleaseFaceDetector(FaceDetector);
+      FaceDetector = null;
     }
   }
 }
