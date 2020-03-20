@@ -55,7 +55,7 @@ Java_org_pytorch_demo_FaceDetectorNative_nativeFaceDetect(JNIEnv *env, jclass cl
     // Post processing
     std::vector<FaceInfo> bboxCollection;
     std::vector<FaceInfo> faceList;
-    fd->generateBboxes(bboxCollection, outFeatures[0], outFeatures[1]);
+    fd->filterBboxes(bboxCollection, outFeatures[0], outFeatures[1]);
     fd->nms(bboxCollection, faceList);
 
     int length = (int) faceList.size() * 5;

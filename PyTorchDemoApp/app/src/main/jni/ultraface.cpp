@@ -57,22 +57,27 @@ FaceDetection::FaceDetection(int input_width, int input_length, int image_channe
 }
 
 
-void FaceDetection::generateBboxes(std::vector<FaceInfo> &bbox_collection,
-                                   std::vector<float> scores, std::vector<float> boxes) {
+void FaceDetection::filterBboxes(std::vector<FaceInfo> &bbox_collection,
+                                 std::vector<float> scores, std::vector<float> boxes) {
     for (int i = 0; i < num_anchors; i++) {
         if (scores[i * 2 + 1 ] > score_threshold) {
 
             FaceInfo rects;
-            float x_center = boxes[i * 4] * center_variance * priors[i][2] + priors[i][0];
-            float y_center = boxes[i * 4 + 1] * center_variance * priors[i][3] + priors[i][1];
-            float w = exp(boxes[i * 4 + 2] * size_variance) * priors[i][2];
-            float h = exp(boxes[i * 4 + 3] * size_variance) * priors[i][3];
+//            float x_center = boxes[i * 4] * center_variance * priors[i][2] + priors[i][0];
+//            float y_center = boxes[i * 4 + 1] * center_variance * priors[i][3] + priors[i][1];
+//            float w = exp(boxes[i * 4 + 2] * size_variance) * priors[i][2];
+//            float h = exp(boxes[i * 4 + 3] * size_variance) * priors[i][3];
 
-            rects.x1 = clip(x_center - w / 2.0, 1) * in_w;
-            rects.y1 = clip(y_center - h / 2.0, 1) * in_h;
-            rects.x2 = clip(x_center + w / 2.0, 1) * in_w;
-            rects.y2 = clip(y_center + h / 2.0, 1) * in_h;
-            rects.score = clip(scores[i * 2 + 1 ], 1);
+//            rects.x1 = clip(x_center - w / 2.0, 1) * in_w;
+//            rects.y1 = clip(y_center - h / 2.0, 1) * in_h;
+//            rects.x2 = clip(x_center + w / 2.0, 1) * in_w;
+//            rects.y2 = clip(y_center + h / 2.0, 1) * in_h;
+            rects.x1 = clip(boxes[i * 4], 1) * in_w;
+            rects.y1 = clip(boxes[i * 4 + 1], 1) * in_h;
+            rects.x2 = clip(boxes[i * 4 + 2], 1) * in_w;
+            rects.y2 = clip(boxes[i * 4 + 3], 1) * in_h;
+
+            rects.score = clip(scores[i * 2 + 1], 1);
 
             bbox_collection.push_back(rects);
         }

@@ -26,8 +26,8 @@ class FaceDetection {
 public:
     FaceDetection(int inputWidth, int inputHeight, int inputChannels, int numThreads = 4, float scoreThreshold = 0.7, float iouThreshold = 0.35);
 
-    void generateBboxes(std::vector<FaceInfo> &bbox_collection, std::vector<float> scores,
-                        std::vector<float> boxes);
+    void filterBboxes(std::vector<FaceInfo> &bbox_collection, std::vector<float> scores,
+                      std::vector<float> boxes);
 
     void nms(std::vector<FaceInfo> &input, std::vector<FaceInfo> &output, int type = blending_nms);
 
