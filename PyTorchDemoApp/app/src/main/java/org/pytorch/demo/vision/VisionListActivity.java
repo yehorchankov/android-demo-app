@@ -30,7 +30,7 @@ public class VisionListActivity extends AbstractListActivity {
     findViewById(R.id.vision_card_ultranet_click_area).setOnClickListener(v -> {
       final Intent intent = new Intent(VisionListActivity.this, ImageClassificationActivity.class);
       intent.putExtra(ImageClassificationActivity.INTENT_MODULE_ASSET_NAME,
-              "ultranet-slim-320-jit.pt");
+              "ultranet-slim-320-jit-3.pt");
       intent.putExtra(ImageClassificationActivity.INTENT_INFO_VIEW_TYPE,
               InfoViewFactory.INFO_VIEW_TYPE_FACE_DETECTION_ULTRANET);
       startActivity(intent);
