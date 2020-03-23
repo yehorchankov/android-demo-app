@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
 import android.media.Image;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -96,7 +97,9 @@ public class ImageClassificationActivity extends AbstractCameraXActivity<ImageCl
 
     @Override
     protected SurfaceView getFaceBoxesSurfaceView() {
-        return (SurfaceView) findViewById(R.id.faceView);
+        return ((ViewStub) findViewById(R.id.face_boxes_surface_view_stub))
+                .inflate()
+                .findViewById(R.id.face_boxes_surface_view);
     }
 
     @Override
@@ -227,7 +230,28 @@ public class ImageClassificationActivity extends AbstractCameraXActivity<ImageCl
                 float[] result = FaceDetectorNative.nativeFaceDetect(FaceDetector, scores, boxes);
 
                 final long analysisDuration = SystemClock.elapsedRealtime() - startTime;
-                return new AnalysisResult(new String[] {"Wasted"}, new float[] {0.9f}, moduleForwardDuration, analysisDuration);
+
+                Canvas canvas = faceBoxesViewHolder.lockCanvas();
+
+                canvas.drawColor( 0, PorterDuff.Mode.CLEAR );
+
+                Paint rectPaint = new Paint();
+                int canvasWidth = canvas.getWidth();
+                int canvasHeight = canvas.getHeight();
+                rectPaint.setColor(Color.MAGENTA);
+                rectPaint.setStyle(Paint.Style.STROKE);
+                rectPaint.setStrokeWidth(5);
+
+                for (int i = 0; i < result.length / 5; i++) {
+                    canvas.drawRect(result[i * 5] / inputWidth * canvasWidth,
+                            result[i * 5 + 1] / inputHeight * canvasHeight,
+                            result[i * 5 + 2] / inputWidth * canvasWidth,
+                            result[i * 5 + 3] / inputHeight * canvasHeight, rectPaint);
+                }
+
+                faceBoxesViewHolder.unlockCanvasAndPost(canvas);
+
+                return new AnalysisResult(new String[] {"Faces 1", "Faces 2", "Faces 3"}, new float[] {0.7f, 0.2f, 0.1f}, moduleForwardDuration, analysisDuration);
             } else {
                 if (mModule == null) {
                     // Create model and input tensor
@@ -264,17 +288,6 @@ public class ImageClassificationActivity extends AbstractCameraXActivity<ImageCl
                     topKScores[i] = scores[ix];
                 }
                 final long analysisDuration = SystemClock.elapsedRealtime() - startTime;
-
-                Canvas canvas = faceBoxesViewHolder.lockCanvas();
-                Paint rectPaint = new Paint();
-                System.out.println(canvas.getWidth());
-                System.out.println(canvas.getHeight());
-                rectPaint.setColor(Color.CYAN);
-                rectPaint.setStyle(Paint.Style.FILL);
-                rectPaint.setStrokeWidth(5);
-                canvas.drawRect(0, 0, 500, 500, rectPaint);
-
-                faceBoxesViewHolder.unlockCanvasAndPost(canvas);
 
                 return new AnalysisResult(topKClassNames, topKScores, moduleForwardDuration, analysisDuration);
             }
