@@ -2,11 +2,15 @@ package org.pytorch.demo.vision;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.media.Image;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewStub;
@@ -39,10 +43,6 @@ public class ImageClassificationActivity extends AbstractCameraXActivity<ImageCl
     public static final String INTENT_MODULE_ASSET_NAME = "INTENT_MODULE_ASSET_NAME";
     public static final String INTENT_INFO_VIEW_TYPE = "INTENT_INFO_VIEW_TYPE";
 
-//    private static final int INPUT_TENSOR_WIDTH = 224;
-//    private static final int INPUT_TENSOR_HEIGHT = 224;
-//    private static final int ULTRA_INPUT_TENSOR_HEIGHT = 240;
-//    private static final int ULTRA_INPUT_TENSOR_WIDTH = 320;
     private static final float[] ULTRANET_NORM_MEAN_RGB = new float[]{127f, 127f, 127f};
     private static final float[] ULTRANET_NORM_STD_RGB = new float[]{1.0f / 128.0f, 1.0f / 128.0f, 1.0f / 128.0f};
     private static final int TOP_K = 3;
@@ -92,6 +92,11 @@ public class ImageClassificationActivity extends AbstractCameraXActivity<ImageCl
         return ((ViewStub) findViewById(R.id.image_classification_texture_view_stub))
                 .inflate()
                 .findViewById(R.id.image_classification_texture_view);
+    }
+
+    @Override
+    protected SurfaceView getFaceBoxesSurfaceView() {
+        return (SurfaceView) findViewById(R.id.faceView);
     }
 
     @Override
@@ -259,6 +264,18 @@ public class ImageClassificationActivity extends AbstractCameraXActivity<ImageCl
                     topKScores[i] = scores[ix];
                 }
                 final long analysisDuration = SystemClock.elapsedRealtime() - startTime;
+
+                Canvas canvas = faceBoxesViewHolder.lockCanvas();
+                Paint rectPaint = new Paint();
+                System.out.println(canvas.getWidth());
+                System.out.println(canvas.getHeight());
+                rectPaint.setColor(Color.CYAN);
+                rectPaint.setStyle(Paint.Style.FILL);
+                rectPaint.setStrokeWidth(5);
+                canvas.drawRect(0, 0, 500, 500, rectPaint);
+
+                faceBoxesViewHolder.unlockCanvasAndPost(canvas);
+
                 return new AnalysisResult(topKClassNames, topKScores, moduleForwardDuration, analysisDuration);
             }
         } catch (Exception e) {

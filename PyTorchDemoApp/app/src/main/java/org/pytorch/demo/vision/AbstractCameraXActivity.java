@@ -2,9 +2,12 @@ package org.pytorch.demo.vision;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Size;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.TextureView;
 import android.widget.Toast;
 
@@ -21,12 +24,15 @@ import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
 import androidx.camera.core.PreviewConfig;
 import androidx.core.app.ActivityCompat;
+import androidx.recyclerview.widget.RecyclerView;
 
 public abstract class AbstractCameraXActivity<R> extends BaseModuleActivity {
   private static final int REQUEST_CODE_CAMERA_PERMISSION = 200;
   private static final String[] PERMISSIONS = {Manifest.permission.CAMERA};
   protected int inputHeight;
   protected int inputWidth;
+  protected SurfaceView faceBoxesView;
+  protected SurfaceHolder faceBoxesViewHolder;
 
   private long mLastAnalysisResultTime;
 
@@ -34,7 +40,9 @@ public abstract class AbstractCameraXActivity<R> extends BaseModuleActivity {
 
   protected abstract TextureView getCameraPreviewTextureView();
 
-  @Override
+  protected abstract SurfaceView getFaceBoxesSurfaceView();
+
+    @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     StatusBarUtils.setStatusBarOverlay(getWindow(), true);
@@ -71,10 +79,16 @@ public abstract class AbstractCameraXActivity<R> extends BaseModuleActivity {
   }
 
   private void setupCameraX() {
+    faceBoxesView = getFaceBoxesSurfaceView();
+    faceBoxesViewHolder = faceBoxesView.getHolder();
+    faceBoxesView.setZOrderOnTop(true);
+    faceBoxesViewHolder.setFormat(PixelFormat.TRANSPARENT);
+
     final TextureView textureView = getCameraPreviewTextureView();
     final PreviewConfig previewConfig = new PreviewConfig.Builder().build();
     final Preview preview = new Preview(previewConfig);
     preview.setOnPreviewOutputUpdateListener(output -> textureView.setSurfaceTexture(output.getSurfaceTexture()));
+
 
     final ImageAnalysisConfig imageAnalysisConfig =
             new ImageAnalysisConfig.Builder()
