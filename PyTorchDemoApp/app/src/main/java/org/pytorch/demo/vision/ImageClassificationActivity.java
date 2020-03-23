@@ -39,10 +39,10 @@ public class ImageClassificationActivity extends AbstractCameraXActivity<ImageCl
     public static final String INTENT_MODULE_ASSET_NAME = "INTENT_MODULE_ASSET_NAME";
     public static final String INTENT_INFO_VIEW_TYPE = "INTENT_INFO_VIEW_TYPE";
 
-    private static final int INPUT_TENSOR_WIDTH = 224;
-    private static final int INPUT_TENSOR_HEIGHT = 224;
-    private static final int ULTRA_INPUT_TENSOR_HEIGHT = 240;
-    private static final int ULTRA_INPUT_TENSOR_WIDTH = 320;
+//    private static final int INPUT_TENSOR_WIDTH = 224;
+//    private static final int INPUT_TENSOR_HEIGHT = 224;
+//    private static final int ULTRA_INPUT_TENSOR_HEIGHT = 240;
+//    private static final int ULTRA_INPUT_TENSOR_WIDTH = 320;
     private static final float[] ULTRANET_NORM_MEAN_RGB = new float[]{127f, 127f, 127f};
     private static final float[] ULTRANET_NORM_STD_RGB = new float[]{1.0f / 128.0f, 1.0f / 128.0f, 1.0f / 128.0f};
     private static final int TOP_K = 3;
@@ -96,7 +96,15 @@ public class ImageClassificationActivity extends AbstractCameraXActivity<ImageCl
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        if (this.getInfoViewCode() == InfoViewFactory.INFO_VIEW_TYPE_FACE_DETECTION_ULTRANET) {
+            this.inputWidth = 320;
+            this.inputHeight = 240;
+        } else {
+            this.inputWidth = 224;
+            this.inputHeight = 224;
+        }
         super.onCreate(savedInstanceState);
+
         final ResultRowView headerResultRowView =
                 findViewById(R.id.image_classification_result_header_row);
         headerResultRowView.nameTextView.setText(R.string.image_classification_results_header_row_name);
@@ -179,12 +187,12 @@ public class ImageClassificationActivity extends AbstractCameraXActivity<ImageCl
                     mModule = Module.load(moduleFileAbsoluteFilePath);
 
                     mInputTensorBuffer =
-                            Tensor.allocateFloatBuffer(3 * ULTRA_INPUT_TENSOR_WIDTH * ULTRA_INPUT_TENSOR_HEIGHT);
-                    mInputTensor = Tensor.fromBlob(mInputTensorBuffer, new long[]{1, 3, ULTRA_INPUT_TENSOR_HEIGHT, ULTRA_INPUT_TENSOR_WIDTH});
+                            Tensor.allocateFloatBuffer(3 * this.inputWidth * this.inputHeight);
+                    mInputTensor = Tensor.fromBlob(mInputTensorBuffer, new long[]{1, 3, this.inputHeight, this.inputWidth});
                 }
 
                 if (FaceDetector == null) {
-                    FaceDetector = FaceDetectorNative.nativeInitFaceDetector(ULTRA_INPUT_TENSOR_WIDTH, ULTRA_INPUT_TENSOR_HEIGHT, 3);
+                    FaceDetector = FaceDetectorNative.nativeInitFaceDetector(this.inputWidth, this.inputHeight, 3);
                 }
 
 //                final String testImagePath = new File(Utils.assetFilePath(this, "faces.jpg")).getAbsolutePath();
@@ -200,7 +208,7 @@ public class ImageClassificationActivity extends AbstractCameraXActivity<ImageCl
 //                        mInputTensorBuffer, 0);
                 TensorImageUtilsCopy.imageYUV420CenterCropToFloatBuffer(
                         image.getImage(), rotationDegrees,
-                        ULTRA_INPUT_TENSOR_WIDTH, ULTRA_INPUT_TENSOR_HEIGHT,
+                        this.inputWidth, this.inputHeight,
                         ULTRANET_NORM_MEAN_RGB, ULTRANET_NORM_STD_RGB,
                         mInputTensorBuffer, 0);
 
@@ -223,15 +231,15 @@ public class ImageClassificationActivity extends AbstractCameraXActivity<ImageCl
                     mModule = Module.load(moduleFileAbsoluteFilePath);
 
                     mInputTensorBuffer =
-                            Tensor.allocateFloatBuffer(3 * INPUT_TENSOR_WIDTH * INPUT_TENSOR_HEIGHT);
-                    mInputTensor = Tensor.fromBlob(mInputTensorBuffer, new long[]{1, 3, INPUT_TENSOR_HEIGHT, INPUT_TENSOR_WIDTH});
+                            Tensor.allocateFloatBuffer(3 * this.inputWidth * this.inputHeight);
+                    mInputTensor = Tensor.fromBlob(mInputTensorBuffer, new long[]{1, 3, this.inputHeight, this.inputWidth});
                 }
 
                 // Handle classification
                 final long startTime = SystemClock.elapsedRealtime();
                 TensorImageUtils.imageYUV420CenterCropToFloatBuffer(
                         image.getImage(), rotationDegrees,
-                        INPUT_TENSOR_WIDTH, INPUT_TENSOR_HEIGHT,
+                        this.inputWidth, this.inputHeight,
                         TensorImageUtils.TORCHVISION_NORM_MEAN_RGB,
                         TensorImageUtils.TORCHVISION_NORM_STD_RGB,
                         mInputTensorBuffer, 0);

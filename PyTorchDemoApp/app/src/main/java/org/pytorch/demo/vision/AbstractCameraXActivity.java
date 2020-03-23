@@ -25,6 +25,8 @@ import androidx.core.app.ActivityCompat;
 public abstract class AbstractCameraXActivity<R> extends BaseModuleActivity {
   private static final int REQUEST_CODE_CAMERA_PERMISSION = 200;
   private static final String[] PERMISSIONS = {Manifest.permission.CAMERA};
+  protected int inputHeight;
+  protected int inputWidth;
 
   private long mLastAnalysisResultTime;
 
@@ -75,8 +77,8 @@ public abstract class AbstractCameraXActivity<R> extends BaseModuleActivity {
     preview.setOnPreviewOutputUpdateListener(output -> textureView.setSurfaceTexture(output.getSurfaceTexture()));
 
     final ImageAnalysisConfig imageAnalysisConfig =
-        new ImageAnalysisConfig.Builder()
-            .setTargetResolution(new Size(224, 224))
+            new ImageAnalysisConfig.Builder()
+            .setTargetResolution(new Size(inputWidth, inputHeight))
             .setCallbackHandler(mBackgroundHandler)
             .setImageReaderMode(ImageAnalysis.ImageReaderMode.ACQUIRE_LATEST_IMAGE)
             .build();
