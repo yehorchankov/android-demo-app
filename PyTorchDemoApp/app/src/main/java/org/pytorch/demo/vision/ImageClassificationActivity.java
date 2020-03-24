@@ -1,12 +1,9 @@
 package org.pytorch.demo.vision;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
-import android.media.Image;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.text.TextUtils;
@@ -203,17 +200,9 @@ public class ImageClassificationActivity extends AbstractCameraXActivity<ImageCl
                     FaceDetector = FaceDetectorNative.nativeInitFaceDetector(this.inputWidth, this.inputHeight, 3);
                 }
 
-//                final String testImagePath = new File(Utils.assetFilePath(this, "faces.jpg")).getAbsolutePath();
-//
-//                Bitmap testImageBitmap = BitmapFactory.decodeFile(testImagePath);
-
-
                 // Handle face detection
                 final long startTime = SystemClock.elapsedRealtime();
-//                TensorImageUtilsCopy.bitmapToFloatBuffer(testImageBitmap, 0, 0,
-//                        ULTRA_INPUT_TENSOR_WIDTH, ULTRA_INPUT_TENSOR_HEIGHT,
-//                        ULTRANET_NORM_MEAN_RGB, new float[]{128.0f, 128.0f, 128.0f},
-//                        mInputTensorBuffer, 0);
+
                 TensorImageUtilsCopy.imageYUV420CenterCropToFloatBuffer(
                         image.getImage(), rotationDegrees,
                         this.inputWidth, this.inputHeight,
