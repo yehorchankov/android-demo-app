@@ -242,11 +242,18 @@ public class ImageClassificationActivity extends AbstractCameraXActivity<ImageCl
                 rectPaint.setStyle(Paint.Style.STROKE);
                 rectPaint.setStrokeWidth(5);
 
+                Paint textPaint = new Paint();
+                textPaint.setColor(Color.MAGENTA);
+                textPaint.setTextSize(37);
+
                 for (int i = 0; i < result.length / 5; i++) {
                     canvas.drawRect(result[i * 5] / inputWidth * canvasWidth,
                             result[i * 5 + 1] / inputHeight * canvasHeight,
                             result[i * 5 + 2] / inputWidth * canvasWidth,
                             result[i * 5 + 3] / inputHeight * canvasHeight, rectPaint);
+                    canvas.drawText(String.format("%.3f", result[i * 5 + 4]),
+                            result[i * 5] / inputWidth * canvasWidth,
+                            result[i * 5 + 1] / inputHeight * canvasHeight, textPaint);
                 }
 
                 faceBoxesViewHolder.unlockCanvasAndPost(canvas);
