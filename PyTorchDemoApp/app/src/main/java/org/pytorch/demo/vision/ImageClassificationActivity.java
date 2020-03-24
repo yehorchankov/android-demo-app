@@ -247,7 +247,7 @@ public class ImageClassificationActivity extends AbstractCameraXActivity<ImageCl
 
                 faceBoxesViewHolder.unlockCanvasAndPost(canvas);
 
-                return new AnalysisResult(new String[] {"Faces 1", "Faces 2", "Faces 3"}, new float[] {0.7f, 0.2f, 0.1f}, moduleForwardDuration, analysisDuration);
+                return new AnalysisResult(new String[] {"Looks like I found", " your face", "Bc its beautiful \uD83D\uDE0D"}, new float[] {3f, 1f, 4f}, moduleForwardDuration, analysisDuration);
             } else {
                 if (mModule == null) {
                     // Create model and input tensor
